@@ -29,33 +29,33 @@ export default async (req, res) => {
         if (!rawResponse.ok) {
             res.send('请求失败！');
         }
-        const encoder = new TextEncoder();
-        const decoder = new TextDecoder();
-        const stream = new ReadableStream({
-            async start(controller) {
-                const parser = createParser((event) => {
-                    if (event.type === 'event') {
-                        const data = event.data;
-                        if (data === '[DONE]') {
-                            controller.close();
-                            return;
-                        }
-                        try {
-                            const json = JSON.parse(data);
-                            const text = json.choices[0].delta?.content || '';
-                            const queue = encoder.encode(text);
-                            controller.enqueue(queue);
-                        } catch (e) {
-                            controller.error(e);
-                        }
-                    }
-                });
-                for await (const chunk of rawResponse.body) {
-                    parser.feed(decoder.decode(chunk));
-                }
-            }
-        });
-        res.send(stream);
+        // const encoder = new TextEncoder();
+        // const decoder = new TextDecoder();
+        // const stream = new ReadableStream({
+        //     async start(controller) {
+        //         const parser = createParser((event) => {
+        //             if (event.type === 'event') {
+        //                 const data = event.data;
+        //                 if (data === '[DONE]') {
+        //                     controller.close();
+        //                     return;
+        //                 }
+        //                 try {
+        //                     const json = JSON.parse(data);
+        //                     const text = json.choices[0].delta?.content || '';
+        //                     const queue = encoder.encode(text);
+        //                     controller.enqueue(queue);
+        //                 } catch (e) {
+        //                     controller.error(e);
+        //                 }
+        //             }
+        //         });
+        //         for await (const chunk of rawResponse.body) {
+        //             parser.feed(decoder.decode(chunk));
+        //         }
+        //     }
+        // });
+        res.send(await rawResponse.json());
     } catch (err) {
         res.send(`code: ${err.name}, message: ${err.message}`);
     }
