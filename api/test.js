@@ -16,16 +16,17 @@ export default async (req, res) => {
         method: 'POST',
         body: JSON.stringify({
             model: 'gpt-3.5-turbo',
-            messages: [{ role: 'user', content: 'Say this is a test!' }],
-            temperature: 0.6,
-            stream: true
+            messages: [{ role: 'user', content: '你好' }],
+            temperature: 0.7
         })
     };
-    const resp = await fetch('https://api.openai.com/v1/chat/completions', initOptions).catch((err) => {
+    const rawResponse = await fetch('https://api.openai.com/v1/chat/completions', initOptions).catch((err) => {
         res.send(`code: ${err.name}, message: ${err.message}`);
     });
-    if (resp) {
-        res.send(await resp.text());
+    if (rawResponse) {
+        res.send(await rawResponse.text());
+    } else {
+        res.send('请求失败！');
     }
 };
 
