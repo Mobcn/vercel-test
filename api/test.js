@@ -31,38 +31,22 @@ export default async (req, res) => {
         }
         const encoder = new TextEncoder();
         const decoder = new TextDecoder();
-        const stream = new ReadableStream({
-            async start(controller) {
-                const parser = createParser((event) => {
-                    res.send(event);
-                    if (event.type === 'event') {
-                        const data = event.data;
-                        if (data === '[DONE]') {
-                            controller.close();
-                            return;
-                        }
-                        try {
-                            const json = JSON.parse(data);
-                            const text = json.choices[0].delta?.content || '';
-                            const queue = encoder.encode(text);
-                            controller.enqueue(queue);
-                        } catch (e) {
-                            controller.error(e);
-                        }
-                    }
-                });
-                for await (const chunk of rawResponse.body) {
-                    parser.feed(decoder.decode(chunk));
+        res.setHeader('Content-type', 'application/octet-stream');
+        const parser = createParser((event) => {
+            if (event.type === 'event') {
+                const data = event.data;
+                if (data === '[DONE]') {
+                    res.end();
+                } else {
+                    const json = JSON.parse(data);
+                    const text = json.choices[0].delta?.content || '';
+                    res.write(encoder.encode(text));
                 }
             }
         });
-        // res.setHeader('Content-type', 'application/octet-stream');
-        // res.send(
-        //     await stream
-        //         .getReader()
-        //         .read()
-        //         .then(({ value }) => value)
-        // );
+        for await (const chunk of rawResponse.body) {
+            parser.feed(decoder.decode(chunk));
+        }
     } catch (err) {
         res.send(`code: ${err.name}, message: ${err.message}`);
     }
