@@ -28,18 +28,35 @@ export default async (req, res) => {
         const rawResponse = await fetch('https://api.openai.com/v1/chat/completions', initOptions);
         if (!rawResponse.ok) {
             res.send('请求失败！');
-        } else {
-            const decoder = new TextDecoder('utf-8');
-            const reader = rawResponse.body.getReader();
-            let done = false;
-            res.setHeader('Content-type', 'application/octet-stream');
-            while (!done) {
-                const { value, done: readerDone } = await reader.read();
-                res.write(decoder.decode(value));
-                done = readerDone;
-            }
-            res.end();
         }
+        const encoder = new TextEncoder();
+        const decoder = new TextDecoder();
+        const stream = new ReadableStream({
+            async start(controller) {
+                const parser = createParser((event) => {
+                    if (event.type === 'event') {
+                        const data = event.data;
+                        if (data === '[DONE]') {
+                            controller.close();
+                            return;
+                        }
+                        try {
+                            const json = JSON.parse(data);
+                            const text = json.choices[0].delta?.content || '';
+                            const queue = encoder.encode(text);
+                            controller.enqueue(queue);
+                        } catch (e) {
+                            controller.error(e);
+                        }
+                    }
+                });
+                for await (const chunk of rawResponse.body) {
+                    parser.feed(decoder.decode(chunk));
+                }
+            }
+        });
+        res.setHeader('Content-type', 'application/octet-stream');
+        res.send(stream);
     } catch (err) {
         res.send(`code: ${err.name}, message: ${err.message}`);
     }
