@@ -55,8 +55,13 @@ export default async (req, res) => {
                 }
             }
         });
-        res.setHeader('Content-type', 'application/octet-stream');
-        res.send(stream);
+        // res.setHeader('Content-type', 'application/octet-stream');
+        res.send(
+            await stream
+                .getReader()
+                .read()
+                .then(({ value }) => value)
+        );
     } catch (err) {
         res.send(`code: ${err.name}, message: ${err.message}`);
     }
