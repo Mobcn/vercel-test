@@ -29,12 +29,13 @@ export default async (req, res) => {
         if (!rawResponse.ok) {
             res.send('请求失败！');
         } else {
-            res.setHeader('Content-type', 'application/octet-stream');
+            const decoder = new TextDecoder('utf-8');
             const reader = rawResponse.body.getReader();
             let done = false;
+            res.setHeader('Content-type', 'application/octet-stream');
             while (!done) {
                 const { value, done: readerDone } = await reader.read();
-                res.write(value);
+                res.write(decoder.decode(value));
                 done = readerDone;
             }
             res.end();
