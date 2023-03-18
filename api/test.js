@@ -30,8 +30,9 @@ export default async (req, res) => {
             res.send('请求失败！');
         }
         res.setHeader('Content-type', 'application/octet-stream');
+        let i = 0;
         for await (const chunk of rawResponse.body) {
-            res.write(chunk);
+            res.write(i++);
         }
         res.end();
     } catch (err) {
