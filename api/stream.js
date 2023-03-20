@@ -45,9 +45,15 @@ export default async (context) => {
     return new Response(
         new ReadableStream({
             start(controller) {
-                let time = 1;
-                setInterval(() => {
-                    controller.enqueue(encoder.encode('' + time++));
+                let time = 0;
+                const timer = setInterval(() => {
+                    if (time++ < 5) {
+                        controller.enqueue(encoder.encode('data: ' + new Date() + '\n\n'));
+                    } else {
+                        controller.enqueue(encoder.encode('data: ' + new Date() + '\n\n'));
+                        clearInterval(timer);
+                        controller.close();
+                    }
                 }, 1000);
             }
         })
