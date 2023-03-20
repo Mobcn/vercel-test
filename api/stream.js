@@ -4,7 +4,7 @@ export const config = {
 };
 
 export default async (request, context) => {
-    return new Response(JSON.stringify({ request: Reflect.ownKeys(request), context: Reflect.ownKeys(context) }), {
+    return new Response(JSON.stringify({ request: await request.json(), context: Reflect.ownKeys(context) }), {
         status: 200
     });
 };
