@@ -1,6 +1,6 @@
 export const config = {
     runtime: 'edge',
-    regions: 'iad1' // optional
+    regions: ['iad1'] // optional
 };
 
 export default async (request, context) => {
