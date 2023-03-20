@@ -1,7 +1,8 @@
 export const config = {
-    runtime: 'edge'
+    runtime: 'edge',
+    regions: 'iad1' // optional
 };
 
-export default async (context) => {
-    return new Response(JSON.stringify(context), { status: 200 });
+export default async (request, context) => {
+    return new Response(JSON.stringify({ request: Reflect.ownKeys(request), context }), { status: 200 });
 };
